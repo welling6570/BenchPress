@@ -7,6 +7,7 @@ package frc.robot;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends TimedRobot {
   private final XboxController m_controller = new XboxController(0);
@@ -26,14 +27,14 @@ public class Robot extends TimedRobot {
   public void teleopPeriodic() {
     // Get the x speed. We are inverting this because Xbox controllers return
     // negative values when we push forward.
-    final var xSpeed = -m_speedLimiter.calculate(m_controller.getLeftY()) * Drivetrain.kMaxSpeed;
-
+    final var lSpeed = -m_speedLimiter.calculate(m_controller.getLeftY());
+    SmartDashboard.putNumber("Heading",m_drive.getAngle());
     // Get the rate of angular rotation. We are inverting this because we want a
     // positive value when we pull to the left (remember, CCW is positive in
     // mathematics). Xbox controllers return positive values when you pull to
     // the right by default.
-    final var rot = -m_rotLimiter.calculate(m_controller.getRightX()) * Drivetrain.kMaxAngularSpeed;
+    final var rSpeed = -m_rotLimiter.calculate(m_controller.getRightY());
 
-    m_drive.drive(xSpeed, rot);
+    m_drive.drive(lSpeed, rSpeed);
   }
 }

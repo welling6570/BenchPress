@@ -7,7 +7,8 @@ package frc.robot;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
+import com.kauailabs.navx.frc.AHRS; //just added
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -16,6 +17,7 @@ import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.wpilibj.AnalogGyro;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.interfaces.Gyro;
 import edu.wpi.first.wpilibj.motorcontrol.MotorController;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
 import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
@@ -42,10 +44,12 @@ public class Drivetrain {
   private final MotorControllerGroup m_rightGroup =
       new MotorControllerGroup(m_rightLeader, m_rightFollower);
 
-  private final AnalogGyro m_gyro = new AnalogGyro(0);
+  private final AHRS m_gyro = new AHRS(SPI.Port.kMXP) {
+    
+  };
 
-  private final PIDController m_leftPIDController = new PIDController(1, 0, 0);
-  private final PIDController m_rightPIDController = new PIDController(1, 0, 0);
+  private final PIDController m_leftPIDController = new PIDController(0, 0, 0);
+  private final PIDController m_rightPIDController = new PIDController(0, 0, 0);
 
   private final DifferentialDriveKinematics m_kinematics =
       new DifferentialDriveKinematics(kTrackWidth);
@@ -53,7 +57,7 @@ public class Drivetrain {
   private final DifferentialDriveOdometry m_odometry;
 
   // Gains are for example purposes only - must be determined for your own robot!
-  private final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(1, 3);
+  private final SimpleMotorFeedforward m_feedforward = new SimpleMotorFeedforward(0, 0);
 
   /**
    * Constructs a differential drive object. Sets the encoder distance per pulse and resets the
@@ -104,11 +108,15 @@ public class Drivetrain {
    * @param xSpeed Linear velocity in m/s.
    * @param rot Angular velocity in rad/s.
    */
-  public void drive(double xSpeed, double rot) {
-    var wheelSpeeds = m_kinematics.toWheelSpeeds(new ChassisSpeeds(xSpeed, 0.0, rot));
-    setSpeeds(wheelSpeeds);
+  public void drive(double lSpeed, double rSpeed) {
+    //var wheelSpeeds = m_kinematics.toWheelSpeeds(new ChassisSpeeds(xSpeed, 0.0, rot));
+    //setSpeeds(wheelSpeeds);
+    m_leftGroup.set(lSpeed*Math.abs(lSpeed));
+    m_rightGroup.set(rSpeed*Math.abs(rSpeed));
   }
-
+  public double getAngle() {
+    return m_gyro.getAngle();
+  }
   /** Updates the field-relative position. */
   public void updateOdometry() {
     m_odometry.update(
